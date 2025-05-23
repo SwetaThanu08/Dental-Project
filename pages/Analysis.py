@@ -7,7 +7,7 @@ import os
 import traceback
 import time
 import logging
-from test import *
+
 
 sample_images = {
     "Sample1.1.JPG": "⚠️ Wrong contrast",
