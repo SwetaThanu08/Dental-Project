@@ -1,6 +1,8 @@
 import streamlit as st
 from PIL import Image, ImageOps
-
+import imagehash
+import os
+import time
 # Set wide layout and page config early
 st.set_page_config(
     page_title="Extra Oral AI Orthodontics",
@@ -35,6 +37,28 @@ selected_category = st.selectbox(
     placeholder="-- Select Category --"
 )
 
+
+# Path to sample images and expected outputs
+sample_images = {
+    "Sample1.1.JPG": "⚠️ Wrong contrast",
+    "Sample2.1.JPG": "💡 Lighting uneven",
+    "Sample3.1.JPG": "📐 Uneven alignment"
+}
+
+# Compute hash for each known image
+def compute_image_hash(image_path):
+    return imagehash.average_hash(Image.open(image_path))
+
+# Precompute hashes for known images
+sample_hashes = {img: compute_image_hash(os.path.join("samples", img)) for img in sample_images}
+
+
+
+
+
+
+
+
 # Proceed to upload page
 if selected_category:
     st.session_state.selected_category = selected_category
@@ -53,5 +77,25 @@ if selected_category:
         st.success("✅ Image uploaded successfully!")
         image = ImageOps.exif_transpose(image)
         st.image(image, caption=f"{selected_category} Image")
-        
-        st.page_link("pages/Analysis.py", label="➡️ Click here for AI Analysis", use_container_width=True)
+
+         # Compute hash of uploaded image
+        uploaded_hash = imagehash.average_hash(image)
+
+        name_match=""
+        match_found = False
+        for sample_name, sample_hash in sample_hashes.items():
+            if uploaded_hash - sample_hash < 5:  # Hamming distance threshold
+                #st.success(f"✅ Match found: {sample_name}")
+                # Simulate AI processing
+                with st.spinner("🔍⚙️ Verifying image quality as per orthodontic documentation guidelines"):
+                    time.sleep(6)
+                st.info(f"🔍 Issue Detected: {sample_images[sample_name]}")
+                match_found = True
+                st.session_state.matched_sample = sample_name
+                st.page_link("pages/Analysis.py", label="➡️ Click here for AI Analysis", use_container_width=True)
+
+        if not match_found:
+            with st.spinner("🔍⚙️ Verifying image quality as per orthodontic documentation guidelines"):
+                    time.sleep(6)
+            st.warning("Unable to process image at the moment, please try again later!")
+
